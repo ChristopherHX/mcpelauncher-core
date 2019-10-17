@@ -96,6 +96,12 @@ void MinecraftUtils::setupHybris() {
       Log::warn("Launcher", "Android stub %s called",
                 "AAsset_getRemainingLength64");
     });
+    struct Looper {
+      int fd;
+      int indent;
+      void * data;
+    };
+    static Looper looper;
     hybris_hook("ALooper_pollAll", (void *)+[](  int timeoutMillis,
   int *outFd,
   int *outEvents,
@@ -104,6 +110,29 @@ void MinecraftUtils::setupHybris() {
       // *outFd = 0;
       // *outEvents = 0;
       // *outData = 0;
+      fd_set rfds;
+      struct timeval tv;
+      int retval;
+
+      /* Watch stdin (fd 0) to see when it has input. */
+
+      FD_ZERO(&rfds);
+      FD_SET(looper.fd, &rfds);
+
+      tv.tv_sec = 0;
+      tv.tv_usec = 0;
+
+      retval = select(looper.fd + 1, &rfds, NULL, NULL, &tv);
+      /* Don't rely on the value of tv now! */
+
+      if (retval == -1)
+          perror("select()");
+      else if (retval) {
+          // printf("Data is available now.\n");
+          *outData = looper.data;
+          return looper.indent;
+          /* FD_ISSET(0, &rfds) will be true. */
+      }
       return -3;
     });
     hybris_hook("ANativeActivity_finish", (void *)(void (*)())[]() {
@@ -195,30 +224,34 @@ void MinecraftUtils::setupHybris() {
     hybris_hook("ALooper_prepare", (void *)(void (*)())[]() {
       Log::warn("Launcher", "Android stub %s called", "ALooper_prepare");
     });
-    hybris_hook("ALooper_addFd", (void *)+[](  void *looper,
+    hybris_hook("ALooper_addFd", (void *)+[](  void *loopere ,
       int fd,
       int ident,
       int events,
       int(* callback)(int fd, int events, void *data),
       void *data) {
       Log::warn("Launcher", "Android stub %s called", "ALooper_addFd");
-      std::thread([=](){
-        struct android_poll_source {
-            // The identifier of this source.  May be LOOPER_ID_MAIN or
-            // LOOPER_ID_INPUT.
-            int32_t id;
+      looper.fd = fd;
+      looper.indent = ident;
+      looper.data = data;
+      // std::thread([=](){
+      //   struct android_poll_source {
+      //       // The identifier of this source.  May be LOOPER_ID_MAIN or
+      //       // LOOPER_ID_INPUT.
+      //       int32_t id;
 
-            // The android_app this ident is associated with.
-            struct android_app* app;
+      //       // The android_app this ident is associated with.
+      //       struct android_app* app;
 
-            // Function to call to perform the standard processing of data from
-            // this source.
-            void (*process)(struct android_app* app, struct android_poll_source* source);
-        };
-        while(true) {
-          ((android_poll_source*)data)->process(((android_poll_source*)data)->app, (android_poll_source*)data);
-        }
-      }).detach();
+      //       // Function to call to perform the standard processing of data from
+      //       // this source.
+      //       void (*process)(struct android_app* app, struct android_poll_source* source);
+      //   };
+      //   while(true) {
+      //     // need to sleep while no data => blocks main
+      //     ((android_poll_source*)data)->process(((android_poll_source*)data)->app, (android_poll_source*)data);
+      //   }
+      // }).detach();
       return 1;
     });
     hybris_hook("AInputQueue_detachLooper", (void *)(void (*)())[]() {
@@ -267,9 +300,76 @@ void MinecraftUtils::setupHybris() {
     hybris_hook("AAssetManager_fromJava", (void *)(void (*)())[]() {
       Log::warn("Launcher", "Android stub %s called", "AAssetManager_fromJava");
     });
-    HybrisUtils::stubSymbols(egl_symbols, (void*) (void (*)()) []() {
-        Log::warn("Launcher", "EGL stub called");
-    });
+    // HybrisUtils::stubSymbols(egl_symbols, (void*) +[]() {
+    //     Log::warn("Launcher", "EGL stub called");
+    //     return 1;
+    // });eglChooseConfig
+    hybris_hook("eglChooseConfig", (void *)+[]() {
+   Log::warn("Launcher", "EGL stub %s called", "eglChooseConfig");
+   return 1;
+});
+        hybris_hook("eglGetError", (void *)(void (*)())[]() {
+   Log::warn("Launcher", "EGL stub %s called", "eglGetError");
+});
+        hybris_hook("eglCreateWindowSurface", (void *)(void (*)())[]() {
+   Log::warn("Launcher", "EGL stub %s called", "eglCreateWindowSurface");
+});
+        hybris_hook("eglGetConfigAttrib", (void *)(void (*)())[]() {
+   Log::warn("Launcher", "EGL stub %s called", "eglGetConfigAttrib");
+});
+        hybris_hook("eglCreateContext", (void *)(void (*)())[]() {
+   Log::warn("Launcher", "EGL stub %s called", "eglCreateContext");
+});
+        hybris_hook("eglDestroySurface", (void *)(void (*)())[]() {
+   Log::warn("Launcher", "EGL stub %s called", "eglDestroySurface");
+});
+        hybris_hook("eglSwapBuffers", (void *)(void (*)())[]() {
+   Log::warn("Launcher", "EGL stub %s called", "eglSwapBuffers");
+});
+        hybris_hook("eglMakeCurrent", (void *)(void (*)())[]() {
+   Log::warn("Launcher", "EGL stub %s called", "eglMakeCurrent");
+});
+        hybris_hook("eglDestroyContext", (void *)(void (*)())[]() {
+   Log::warn("Launcher", "EGL stub %s called", "eglDestroyContext");
+});
+        hybris_hook("eglTerminate", (void *)(void (*)())[]() {
+   Log::warn("Launcher", "EGL stub %s called", "eglTerminate");
+});
+        hybris_hook("eglGetDisplay", (void *)+[]() {
+   Log::warn("Launcher", "EGL stub %s called", "eglGetDisplay");
+   return 1;
+});
+        hybris_hook("eglInitialize", (void *)+[](void* display,
+ 	uint32_t * major,
+ 	uint32_t * minor) {
+   Log::warn("Launcher", "EGL stub %s called", "eglInitialize");
+   if(major) {
+     *major = 1;
+   }
+  if(minor) {
+     *minor = 4;
+   }
+   return 1;
+});
+        hybris_hook("eglQuerySurface", (void *)(void (*)())[]() {
+   Log::warn("Launcher", "EGL stub %s called", "eglQuerySurface");
+});
+        hybris_hook("eglSwapInterval", (void *)(void (*)())[]() {
+   Log::warn("Launcher", "EGL stub %s called", "eglSwapInterval");
+});
+hybris_hook("eglQueryString", (void *)+[](void* display, int32_t name) {
+   Log::warn("Launcher", "EGL stub %s called", "eglQueryString");
+   switch (name) {
+    case 12373:
+      return "EGL_KHR_image EGL_KHR_image_base EGL_KHR_image_pixmap EGL_KHR_vg_parent_image EGL_KHR_gl_texture_2D_image EGL_KHR_gl_texture_cubemap_image EGL_KHR_lock_surface";
+    case 12372:
+      return "1.4";
+    case 12371:
+      return "Generic";
+    default:
+      return "Unknown";
+   }
+});
     HybrisUtils::loadLibraryOS("libz.so.1", libz_symbols);
     HybrisUtils::hookAndroidLog();
     setupHookApi();
