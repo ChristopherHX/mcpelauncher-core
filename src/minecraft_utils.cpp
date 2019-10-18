@@ -17,6 +17,9 @@
 #include <hybris/hook.h>
 #include <stdexcept>
 #include <thread>
+#define GLFW_EXPOSE_NATIVE_EGL
+#include "../../build/ext/glfw/include/GLFW/glfw3.h"
+#include "../../build/ext/glfw/include/GLFW/glfw3native.h"
 
 extern "C" {
 #include <hybris/jb/linker.h>
@@ -317,31 +320,42 @@ void MinecraftUtils::setupHybris() {
         hybris_hook("eglGetConfigAttrib", (void *)(void (*)())[]() {
    Log::warn("Launcher", "EGL stub %s called", "eglGetConfigAttrib");
 });
-        hybris_hook("eglCreateContext", (void *)(void (*)())[]() {
+        hybris_hook("eglCreateContext", (void *)+[](EGLDisplay display,
+ 	EGLConfig config,
+ 	EGLContext share_context,
+ 	EGLint const * attrib_list) {
    Log::warn("Launcher", "EGL stub %s called", "eglCreateContext");
+  //  glfwGetEGLContext(display)
 });
         hybris_hook("eglDestroySurface", (void *)(void (*)())[]() {
    Log::warn("Launcher", "EGL stub %s called", "eglDestroySurface");
 });
-        hybris_hook("eglSwapBuffers", (void *)(void (*)())[]() {
+        hybris_hook("eglSwapBuffers", (void *)+[](GLFWwindow *window,
+ 	EGLSurface surface) {
    Log::warn("Launcher", "EGL stub %s called", "eglSwapBuffers");
+   return glfwSwapBuffers(window);
 });
-        hybris_hook("eglMakeCurrent", (void *)(void (*)())[]() {
+        hybris_hook("eglMakeCurrent", (void *)+[]() {
    Log::warn("Launcher", "EGL stub %s called", "eglMakeCurrent");
+  //  glfwMakeContextCurrent();
+   return EGL_TRUE;
 });
         hybris_hook("eglDestroyContext", (void *)(void (*)())[]() {
    Log::warn("Launcher", "EGL stub %s called", "eglDestroyContext");
+  //  glfwDestroyWindow()
 });
         hybris_hook("eglTerminate", (void *)(void (*)())[]() {
    Log::warn("Launcher", "EGL stub %s called", "eglTerminate");
+   glfwTerminate();
 });
         hybris_hook("eglGetDisplay", (void *)+[]() {
    Log::warn("Launcher", "EGL stub %s called", "eglGetDisplay");
-   return 1;
+   return glfwGetEGLDisplay();
 });
         hybris_hook("eglInitialize", (void *)+[](void* display,
  	uint32_t * major,
  	uint32_t * minor) {
+     glfwInit();
    Log::warn("Launcher", "EGL stub %s called", "eglInitialize");
    if(major) {
      *major = 1;
@@ -351,24 +365,28 @@ void MinecraftUtils::setupHybris() {
    }
    return 1;
 });
-        hybris_hook("eglQuerySurface", (void *)(void (*)())[]() {
+        hybris_hook("eglQuerySurface", (void *) + [](GLFWwindow* dpy, EGLSurface surface, EGLint attribute, EGLint *value) {
    Log::warn("Launcher", "EGL stub %s called", "eglQuerySurface");
+   return eglQuerySurface(glfwGetEGLDisplay(), glfwGetEGLSurface(dpy), attribute, value);
 });
-        hybris_hook("eglSwapInterval", (void *)(void (*)())[]() {
+        hybris_hook("eglSwapInterval", (void *)+[](int interval) {
    Log::warn("Launcher", "EGL stub %s called", "eglSwapInterval");
+   glfwSwapInterval(interval);
+   return EGL_TRUE;
 });
-hybris_hook("eglQueryString", (void *)+[](void* display, int32_t name) {
+hybris_hook("eglQueryString", (void *)+[](GLFWwindow* display, int32_t name) {
    Log::warn("Launcher", "EGL stub %s called", "eglQueryString");
-   switch (name) {
-    case 12373:
-      return "EGL_KHR_image EGL_KHR_image_base EGL_KHR_image_pixmap EGL_KHR_vg_parent_image EGL_KHR_gl_texture_2D_image EGL_KHR_gl_texture_cubemap_image EGL_KHR_lock_surface";
-    case 12372:
-      return "1.4";
-    case 12371:
-      return "Generic";
-    default:
-      return "Unknown";
-   }
+   return eglQueryString(glfwGetEGLDisplay(), (EGLint) name);
+  //  switch (name) {
+  //   case 12373:
+  //     return "EGL_KHR_image EGL_KHR_image_base EGL_KHR_image_pixmap EGL_KHR_vg_parent_image EGL_KHR_gl_texture_2D_image EGL_KHR_gl_texture_cubemap_image EGL_KHR_lock_surface";
+  //   case 12372:
+  //     return "1.4";
+  //   case 12371:
+  //     return "Generic";
+  //   default:
+  //     return "Unknown";
+  //  }
 });
     HybrisUtils::loadLibraryOS("libz.so.1", libz_symbols);
     HybrisUtils::hookAndroidLog();
