@@ -20,7 +20,6 @@
 // #define GLFW_EXPOSE_NATIVE_EGL
 // #include "../../build/ext/glfw/include/GLFW/glfw3.h"
 // #include "../../build/ext/glfw/include/GLFW/glfw3native.h"
-#include <EGL/egl.h>
 
 extern "C" {
 #include <hybris/jb/linker.h>
@@ -304,117 +303,6 @@ void MinecraftUtils::setupHybris() {
     hybris_hook("AAssetManager_fromJava", (void *)(void (*)())[]() {
       Log::warn("Launcher", "Android stub %s called", "AAssetManager_fromJava");
     });
-    // HybrisUtils::stubSymbols(egl_symbols, (void*) +[]() {
-    //     Log::warn("Launcher", "EGL stub called");
-    //     // return 0;
-    // });//eglChooseConfig
-    hybris_hook("eglChooseConfig", (void *)+[](EGLDisplay dpy, const EGLint *attrib_list, EGLConfig *configs, EGLint config_size, EGLint *num_config) {
-   Log::warn("Launcher", "EGL stub %s called", "eglChooseConfig");
-   *num_config = 1;
-   return EGL_TRUE;
-});
-        hybris_hook("eglGetError", (void *)(void (*)())[]() {
-   Log::warn("Launcher", "EGL stub %s called", "eglGetError");
-});
-        hybris_hook("eglCreateWindowSurface", (void *)+[]() {
-   Log::warn("Launcher", "EGL stub %s called", "eglCreateWindowSurface");
-   return 1;
-});
-        hybris_hook("eglGetConfigAttrib", (void *)+[](EGLDisplay display,
- 	EGLConfig config,
- 	EGLint attribute,
- 	EGLint * value) {
-   Log::warn("Launcher", "EGL stub %s called", "eglGetConfigAttrib");
-   *value = 1;
-   return EGL_TRUE;
-});
-        hybris_hook("eglCreateContext", (void *)+[](EGLDisplay display,
- 	EGLConfig config,
- 	EGLContext share_context,
- 	EGLint const * attrib_list) {
-   Log::warn("Launcher", "EGL stub %s called", "eglCreateContext");
-  //  glfwGetEGLContext(display)
-  return 1;
-});
-        hybris_hook("eglDestroySurface", (void *)(void (*)())[]() {
-   Log::warn("Launcher", "EGL stub %s called", "eglDestroySurface");
-});
-//         hybris_hook("eglSwapBuffers", (void *)+[](GLFWwindow *window,
-//  	EGLSurface surface) {
-//    Log::warn("Launcher", "EGL stub %s called", "eglSwapBuffers");
-//    return glfwSwapBuffers(window);
-// });
-hybris_hook("eglSwapBuffers", (void *)+[](EGLDisplay *display,
- 	EGLSurface surface) {
-   Log::warn("Launcher", "EGL stub %s called", "eglSwapBuffers");
-  //  return glfwSwapBuffers(window);
-});
-        hybris_hook("eglMakeCurrent", (void *)+[]() {
-   Log::warn("Launcher", "EGL stub %s called", "eglMakeCurrent");
-  //  glfwMakeContextCurrent();
-   return EGL_TRUE;
-});
-        hybris_hook("eglDestroyContext", (void *)(void (*)())[]() {
-   Log::warn("Launcher", "EGL stub %s called", "eglDestroyContext");
-  //  glfwDestroyWindow()
-});
-        hybris_hook("eglTerminate", (void *)(void (*)())[]() {
-   Log::warn("Launcher", "EGL stub %s called", "eglTerminate");
-  //  glfwTerminate();
-});
-        hybris_hook("eglGetDisplay", (void *)+[](NativeDisplayType native_display) {
-   Log::warn("Launcher", "EGL stub %s called", "eglGetDisplay");
-  //  return glfwGetEGLDisplay();
-      auto egl = dlopen("/usr/lib/i386-linux-gnu/libEGL.so", RTLD_LAZY);
-    auto qustr = (const char (*)(NativeDisplayType native_display))dlsym(egl, "eglGetDisplay");
-    auto ret = qustr(0);
-    dlclose(egl);
-   return ret; 
-});
-        hybris_hook("eglInitialize", (void *)+[](void* display,
- 	uint32_t * major,
- 	uint32_t * minor) {
-    //  glfwInit();
-  //  Log::warn("Launcher", "EGL stub %s called", "eglInitialize");
-  //  if(major) {
-  //    *major = 1;
-  //  }
-  // if(minor) {
-  //    *minor = 4;
-  //  }
-    auto egl = dlopen("/usr/lib/i386-linux-gnu/libEGL.so", RTLD_LAZY);
-    auto qustr = (const char (*)(void* display, uint32_t * major, uint32_t * minor))dlsym(egl, "eglInitialize");
-    auto ret = qustr(display, major, minor);
-    dlclose(egl);
-   return ret;
-});
-        hybris_hook("eglQuerySurface", (void *) + [](void* dpy, EGLSurface surface, EGLint attribute, EGLint *value) {
-   Log::warn("Launcher", "EGL stub %s called", "eglQuerySurface");
-   return EGL_TRUE;//eglQuerySurface(glfwGetEGLDisplay(), glfwGetEGLSurface(dpy), attribute, value);
-});
-        hybris_hook("eglSwapInterval", (void *)+[](int interval) {
-   Log::warn("Launcher", "EGL stub %s called", "eglSwapInterval");
-  //  glfwSwapInterval(interval);
-   return EGL_TRUE;
-});
-hybris_hook("eglQueryString", (void *)+[](void* display, int32_t name) {
-    Log::warn("Launcher", "EGL stub %s called", "eglQueryString");
-    auto egl = dlopen("/usr/lib/i386-linux-gnu/libEGL.so", RTLD_LAZY);
-    auto qustr = (const char (*)(EGLDisplay dpy, EGLint name))dlsym(egl, "eglQueryString");
-    auto ret = qustr(display, (EGLint) name);
-    dlclose(egl);
-    return ret;
-//    switch (name) {
-//     case 12373:
-//       return "EGL_KHR_image EGL_KHR_image_base EGL_KHR_image_pixmap EGL_KHR_vg_parent_image EGL_KHR_gl_texture_2D_image EGL_KHR_gl_texture_cubemap_image EGL_KHR_lock_surface";
-//     case 12372:
-//       return "1.4";
-//     case 12371:
-//       return "Generic";
-//     default:
-//       return "Unknown";
-//    }
-});
     HybrisUtils::loadLibraryOS("libz.so.1", libz_symbols);
     HybrisUtils::hookAndroidLog();
     setupHookApi();
