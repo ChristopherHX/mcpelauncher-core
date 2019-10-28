@@ -138,9 +138,6 @@ void MinecraftUtils::setupHybris() {
       }
       return -3;
     });
-    hybris_hook("ANativeActivity_finish", (void *)(void (*)())[]() {
-      Log::warn("Launcher", "Android stub %s called", "ANativeActivity_finish");
-    });
     hybris_hook("AInputQueue_getEvent", (void *)+[]() -> int32_t {
       Log::warn("Launcher", "Android stub %s called", "AInputQueue_getEvent");
       return -1;      
@@ -237,24 +234,6 @@ void MinecraftUtils::setupHybris() {
       looper.fd = fd;
       looper.indent = ident;
       looper.data = data;
-      // std::thread([=](){
-      //   struct android_poll_source {
-      //       // The identifier of this source.  May be LOOPER_ID_MAIN or
-      //       // LOOPER_ID_INPUT.
-      //       int32_t id;
-
-      //       // The android_app this ident is associated with.
-      //       struct android_app* app;
-
-      //       // Function to call to perform the standard processing of data from
-      //       // this source.
-      //       void (*process)(struct android_app* app, struct android_poll_source* source);
-      //   };
-      //   while(true) {
-      //     // need to sleep while no data => blocks main
-      //     ((android_poll_source*)data)->process(((android_poll_source*)data)->app, (android_poll_source*)data);
-      //   }
-      // }).detach();
       return 1;
     });
     hybris_hook("AInputQueue_detachLooper", (void *)(void (*)())[]() {
@@ -271,24 +250,6 @@ void MinecraftUtils::setupHybris() {
   void *data) {
       Log::warn("Launcher", "Android stub %s called",
                 "AInputQueue_attachLooper");
-      std::thread([=](){
-        struct android_poll_source {
-            // The identifier of this source.  May be LOOPER_ID_MAIN or
-            // LOOPER_ID_INPUT.
-            int32_t id;
-
-            // The android_app this ident is associated with.
-            struct android_app* app;
-
-            // Function to call to perform the standard processing of data from
-            // this source.
-            void (*process)(struct android_app* app, struct android_poll_source* source);
-        };
-        // while(true) {
-          ((android_poll_source*)data)->process(((android_poll_source*)data)->app, (android_poll_source*)data);
-        //   std::this_thread::sleep_for(std::chrono::seconds(100));
-        // }
-      }).detach();
     });
     hybris_hook("AAssetManager_openDir", (void *)(void (*)())[]() {
       Log::warn("Launcher", "Android stub %s called", "AAssetManager_openDir");
