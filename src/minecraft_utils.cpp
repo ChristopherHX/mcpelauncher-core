@@ -16,10 +16,6 @@
 #include <hybris/dlfcn.h>
 #include <hybris/hook.h>
 #include <stdexcept>
-#include <thread>
-// #define GLFW_EXPOSE_NATIVE_EGL
-// #include "../../build/ext/glfw/include/GLFW/glfw3.h"
-// #include "../../build/ext/glfw/include/GLFW/glfw3native.h"
 
 extern "C" {
 #include <hybris/jb/linker.h>
@@ -70,6 +66,12 @@ void MinecraftUtils::setupHybris() {
 #ifndef USE_BIONIC_LIBC
     loadLibM();
 #endif
+    HybrisUtils::stubSymbols(android_symbols, (void*) (void (*)()) []() {
+        Log::warn("Launcher", "Android stub called");
+    });
+    HybrisUtils::stubSymbols(egl_symbols, (void*) (void (*)()) []() {
+        Log::warn("Launcher", "EGL stub called");
+    });
     HybrisUtils::loadLibraryOS("libz.so.1", libz_symbols);
     HybrisUtils::hookAndroidLog();
     setupHookApi();
