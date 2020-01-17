@@ -4,6 +4,11 @@
 #include <hybris/hook.h>
 #include <hybris/dlfcn.h>
 
+#ifdef _WIN32
+#define RTLD_LAZY 0
+#include <windows/dlfcn.h>
+#endif
+
 const char* HybrisUtils::TAG = "HybrisUtils";
 
 

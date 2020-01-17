@@ -5,6 +5,9 @@
 #include <elf.h>
 #include <queue>
 #include <mcpelauncher/hook.h>
+#ifdef _WIN32
+#define RTLD_LAZY 0
+#endif
 
 void* ModLoader::loadMod(std::string const& path) {
     void* handle = hybris_dlopen(path.c_str(), RTLD_LAZY);

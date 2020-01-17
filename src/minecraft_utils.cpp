@@ -10,12 +10,18 @@
 #include <minecraft/imported/glesv2_symbols.h>
 #include <minecraft/imported/libz_symbols.h>
 #include <minecraft/symbols.h>
+#include <algorithm>
 #include <minecraft/std/string.h>
 #include <log.h>
 #include <FileUtil.h>
 #include <hybris/dlfcn.h>
 #include <hybris/hook.h>
 #include <stdexcept>
+
+#ifdef _WIN32
+#define RTLD_LAZY 0
+#include <msvc.h>
+#endif
 
 extern "C" {
 #include <hybris/jb/linker.h>
@@ -33,12 +39,15 @@ void MinecraftUtils::setMallocZero() {
     });
 }
 
-void* MinecraftUtils::loadLibM() {
-#ifdef __APPLE__
-    void* libmLib = HybrisUtils::loadLibraryOS("libm.dylib", libm_symbols);
+#ifdef __APPLE
+#define OSLIBM "libm.dylib"
+#elif defined(_WIN32)
+#define OSLIBM "ucrtbase.dll"
 #else
-    void* libmLib = HybrisUtils::loadLibraryOS("libm.so.6", libm_symbols);
+#define OSLIBM "libm.so.6"
 #endif
+void* MinecraftUtils::loadLibM() {
+    void* libmLib = HybrisUtils::loadLibraryOS("libm.so.6", libm_symbols);
     if (libmLib == nullptr)
         throw std::runtime_error("Failed to load libm");
     return libmLib;

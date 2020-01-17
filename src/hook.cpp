@@ -5,7 +5,6 @@
 #include <stdexcept>
 #include <algorithm>
 #include <elf.h>
-#include <sys/mman.h>
 #include <log.h>
 #include <hybris/dlfcn.h>
 
@@ -137,7 +136,7 @@ void HookManager::addLibrary(void *handle) {
         if (dynData[i].d_tag == DT_NULL)
             break;
         if (dynData[i].d_tag == DT_NEEDED) {
-            void* dep = hybris_dlopen((const char*) dynData[i].d_un.d_val, RTLD_NOLOAD);
+            void* dep = hybris_dlopen((const char*) dynData[i].d_un.d_val, 0);
             if (dep == nullptr)
                 continue;
             p->dependencies.push_back(dep);
