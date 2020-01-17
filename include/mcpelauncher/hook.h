@@ -5,7 +5,11 @@
 #include <map>
 #include <unordered_map>
 #include <memory>
+#ifdef _WIN32
+#include <windows/elf.h>
+#else
 #include <elf.h>
+#endif
 
 class HookManager {
 

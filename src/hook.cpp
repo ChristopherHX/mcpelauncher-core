@@ -1,10 +1,16 @@
 #include <mcpelauncher/hook.h>
 
 #include <cstring>
+#ifdef _WIN32
+#include <windows/dlfcn.h>
+#include <windows/elf.h>
+#else
 #include <dlfcn.h>
+#include <elf.h>
+#endif
 #include <stdexcept>
 #include <algorithm>
-#include <elf.h>
+// #include <sys/mman.h>
 #include <log.h>
 #include <hybris/dlfcn.h>
 

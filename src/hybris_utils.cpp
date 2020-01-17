@@ -34,6 +34,12 @@ void* HybrisUtils::loadLibraryOS(std::string path, const char** symbols) {
         if (sym == nullptr)
             break;
         void* ptr = dlsym(handle, sym);
+        if(ptr == nullptr) {
+            Log::trace("HybrisUtils::loadLibraryOS", "Missing Symbol %s in %s", sym, path.data());
+            void *ptr = (void*)+[]() -> void {
+                return;
+            };
+        }
         hybris_hook(sym, ptr);
         i++;
     }

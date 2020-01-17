@@ -20,7 +20,7 @@
 
 #ifdef _WIN32
 #define RTLD_LAZY 0
-#include <msvc.h>
+#include <windows/msvc.h>
 #endif
 
 extern "C" {
@@ -47,7 +47,7 @@ void MinecraftUtils::setMallocZero() {
 #define OSLIBM "libm.so.6"
 #endif
 void* MinecraftUtils::loadLibM() {
-    void* libmLib = HybrisUtils::loadLibraryOS("libm.so.6", libm_symbols);
+    void* libmLib = HybrisUtils::loadLibraryOS(OSLIBM, libm_symbols);
     if (libmLib == nullptr)
         throw std::runtime_error("Failed to load libm");
     return libmLib;
@@ -81,9 +81,9 @@ void MinecraftUtils::setupHybris() {
     HybrisUtils::stubSymbols(egl_symbols, (void*) (void (*)()) []() {
         Log::warn("Launcher", "EGL stub called");
     });
-    HybrisUtils::loadLibraryOS("libz.so.1", libz_symbols);
+    // HybrisUtils::loadLibraryOS("libz.so.1", libz_symbols);
     HybrisUtils::hookAndroidLog();
-    setupHookApi();
+    // setupHookApi();
     hybris_hook("mcpelauncher_log", (void*) Log::log);
     hybris_hook("mcpelauncher_vlog", (void*) Log::vlog);
     // load stub libraries
@@ -101,7 +101,7 @@ void MinecraftUtils::setupHybris() {
     if (!load_empty_library("libmcpelauncher_mod.so"))
         throw std::runtime_error("Failed to load stub libraries");
     load_empty_library("libstdc++.so");
-    load_empty_library("libz.so"); // needed for <0.17
+    // load_empty_library("libz.so"); // needed for <0.17
 }
 
 void MinecraftUtils::setupHookApi() {
