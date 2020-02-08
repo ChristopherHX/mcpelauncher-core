@@ -63,9 +63,7 @@ void MinecraftUtils::stubFMod() {
 }
 
 void MinecraftUtils::setupHybris() {
-#ifndef USE_BIONIC_LIBC
     loadLibM();
-#endif
     HybrisUtils::stubSymbols(android_symbols, (void*) (void (*)()) []() {
         Log::warn("Launcher", "Android stub called");
     });
@@ -78,15 +76,8 @@ void MinecraftUtils::setupHybris() {
     hybris_hook("mcpelauncher_log", (void*) Log::log);
     hybris_hook("mcpelauncher_vlog", (void*) Log::vlog);
     // load stub libraries
-#ifdef USE_BIONIC_LIBC
-    if (!load_empty_library("ld-android.so") ||
-        !hybris_dlopen(PathHelper::findDataFile("libs/hybris/libc.so").c_str(), 0) ||
-        !hybris_dlopen(PathHelper::findDataFile("libs/hybris/libm.so").c_str(), 0))
-        throw std::runtime_error("Failed to load Android libc.so/libm.so libraries");
-#else
     if (!load_empty_library("libc.so") || !load_empty_library("libm.so"))
         throw std::runtime_error("Failed to load stub libraries");
-#endif
     if (!load_empty_library("libandroid.so") || !load_empty_library("liblog.so") || !load_empty_library("libEGL.so") || !load_empty_library("libGLESv2.so") || !load_empty_library("libOpenSLES.so") || !load_empty_library("libfmod.so") || !load_empty_library("libGLESv1_CM.so"))
         throw std::runtime_error("Failed to load stub libraries");
     if (!load_empty_library("libmcpelauncher_mod.so"))

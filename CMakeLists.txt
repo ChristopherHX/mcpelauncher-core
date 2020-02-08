@@ -12,10 +12,6 @@ if (APPLE)
     target_link_libraries(mcpelauncher-core osx-elf-header)
 endif()
 
-if (IS_ARMHF_BUILD)
-    target_compile_definitions(mcpelauncher-core PRIVATE USE_BIONIC_LIBC)
-endif()
-
 if (PNG_FOUND)
     target_compile_definitions(mcpelauncher-core PRIVATE HAS_LIBPNG)
     target_include_directories(mcpelauncher-core PRIVATE ${PNG_INCLUDE_DIRS})
