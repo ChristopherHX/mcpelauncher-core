@@ -2,7 +2,9 @@ cmake_minimum_required (VERSION 2.6)
 
 project(mcpelauncher-core LANGUAGES CXX)
 
-find_package(PNG)
+if (NOT APPLE)
+    find_package(PNG)
+endif()
 
 add_library(mcpelauncher-core include/mcpelauncher/app_platform.h include/mcpelauncher/hook.h include/mcpelauncher/mod_loader.h include/mcpelauncher/hybris_utils.h include/mcpelauncher/patch_utils.h include/mcpelauncher/crash_handler.h include/mcpelauncher/minecraft_utils.h src/app_platform.cpp src/hook.cpp src/mod_loader.cpp src/hybris_utils.cpp src/hybris_android_log_hook.cpp src/crash_handler.cpp src/patch_utils.cpp src/minecraft_utils.cpp include/mcpelauncher/minecraft_version.h)
 target_include_directories(mcpelauncher-core PUBLIC include/)
