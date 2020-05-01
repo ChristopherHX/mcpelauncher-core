@@ -8,6 +8,7 @@
 const char* PatchUtils::TAG = "Patch";
 
 void PatchUtils::patchCallInstruction(void* patchOff, void* func, bool jump) {
+#ifndef __LP64__
     unsigned char* data = (unsigned char*) patchOff;
 #ifdef __arm__
     if (!jump)
@@ -32,6 +33,7 @@ void PatchUtils::patchCallInstruction(void* patchOff, void* func, bool jump) {
     memcpy(&data[1], &ptr, sizeof(int));
     Log::trace(TAG, "Patching - result: %i %i %i %i %i", data[0], data[1], data[2], data[3], data[4]);
 #endif
+    #endif
 }
 
 void PatchUtils::VtableReplaceHelper::replace(const char* name, void* replacement) {
