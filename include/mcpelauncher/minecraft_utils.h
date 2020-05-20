@@ -16,7 +16,13 @@ public:
 
     static void setupHybris();
 
-    static void* loadMinecraftLib(std::string const& path = PathHelper::findGameFile("libs/libminecraftpe.so"));
+    static void* loadMinecraftLib(std::string const& path = PathHelper::findGameFile("lib/"
+#ifdef __i386__
+    "x86"
+#else
+    "armeabi-v7a"
+#endif
+    "/libminecraftpe.so"));
 
     static void* loadFMod();
     static void stubFMod();
