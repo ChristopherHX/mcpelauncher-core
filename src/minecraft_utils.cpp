@@ -130,7 +130,16 @@ void MinecraftUtils::setupApi() {
 }
 
 void* MinecraftUtils::loadMinecraftLib() {
-    void* handle = linker::dlopen("libminecraftpe.so", 0);
+    android_dlextinfo extinfo;
+    std::vector<mcpelauncher_hook_t> hooks;
+    hooks.emplace_back(mcpelauncher_hook_t{ "_Znaj", (void*)((void*(*)(std::size_t))&::operator new[]) });
+    hooks.emplace_back(mcpelauncher_hook_t{ "_Znwj", (void*)((void*(*)(std::size_t))&::operator new) });
+    hooks.emplace_back(mcpelauncher_hook_t{ "_ZnwjSt11align_val_t", (void*)((void*(*)(std::size_t, std::align_val_t))&::operator new[]) });
+
+    hooks.emplace_back(mcpelauncher_hook_t{ nullptr, nullptr });
+    extinfo.flags = ANDROID_DLEXT_MCPELAUNCHER_HOOKS;
+    extinfo.mcpelauncher_hooks = hooks.data();
+    void* handle = linker::dlopen_ext("libminecraftpe.so", 0, &extinfo);
     if (handle == nullptr) {
         Log::error("MinecraftUtils", "Failed to load Minecraft: %s", linker::dlerror());
     } else {
